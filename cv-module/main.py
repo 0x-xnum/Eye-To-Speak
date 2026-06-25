@@ -18,6 +18,7 @@ mp_face_mesh = mp.solutions.face_mesh
 def main():
 
     blink = BlinkGesture()
+
     tracker = EyeTracker()
 
     calibration = EyeCalibration()
@@ -107,10 +108,17 @@ def main():
                         is_blink
                     )
 
-                    if gesture:
+                    if gesture == "BLINK":
 
                         print(
-                            f"{gesture} | "
+                            f"BLINK | "
+                            f"Total: {blink.count}"
+                        )
+
+                    elif gesture == "LONG_BLINK":
+
+                        print(
+                            f"LONG BLINK | "
                             f"Total: {blink.count}"
                         )
 
