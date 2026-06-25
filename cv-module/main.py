@@ -1,9 +1,15 @@
 import cv2
 import mediapipe as mp
 
-from config import EAR_THRESHOLD
+from config import (
+    EAR_THRESHOLD,
+    CALIBRATION_FRAMES,
+    CALIBRATION_FACTOR
+)
+
 from core.gestures import BlinkGesture
 from core.eye_tracker import EyeTracker
+from core.calibration import EyeCalibration
 
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -13,6 +19,10 @@ def main():
 
     blink = BlinkGesture()
     tracker = EyeTracker()
+
+    calibration = EyeCalibration()
+
+    current_threshold = EAR_THRESHOLD
 
     cap = cv2.VideoCapture(0)
 
@@ -58,24 +68,57 @@ def main():
                     h
                 )
 
-                is_blink = (
-                    avg_ear < EAR_THRESHOLD
-                )
+                if not calibration.is_calibrated():
 
-                gesture = blink.update(
-                    is_blink
-                )
-
-                if gesture:
-                    print(
-                        f"{gesture} | Total: {blink.count}"
+                    calibration.update(
+                        avg_ear,
+                        CALIBRATION_FRAMES,
+                        CALIBRATION_FACTOR
                     )
 
-                status = (
-                    "BLINK"
-                    if is_blink
-                    else "OPEN"
-                )
+                    status = (
+                        f"CALIBRATING "
+                        f"({len(calibration.samples)}/"
+                        f"{CALIBRATION_FRAMES})"
+                    )
+
+                    if calibration.is_calibrated():
+
+                        current_threshold = (
+                            calibration.get_threshold()
+                        )
+
+                        print(
+                            "\n[+] Calibration Complete"
+                        )
+
+                        print(
+                            f"[+] Threshold = "
+                            f"{current_threshold:.3f}\n"
+                        )
+
+                else:
+
+                    is_blink = (
+                        avg_ear < current_threshold
+                    )
+
+                    gesture = blink.update(
+                        is_blink
+                    )
+
+                    if gesture:
+
+                        print(
+                            f"{gesture} | "
+                            f"Total: {blink.count}"
+                        )
+
+                    status = (
+                        "BLINK"
+                        if is_blink
+                        else "OPEN"
+                    )
 
             cv2.putText(
                 frame,
@@ -108,6 +151,16 @@ def main():
                     if status == "BLINK"
                     else (0, 255, 0)
                 ),
+                2
+            )
+
+            cv2.putText(
+                frame,
+                f"Threshold: {current_threshold:.2f}",
+                (30, 170),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255, 255, 0),
                 2
             )
 
