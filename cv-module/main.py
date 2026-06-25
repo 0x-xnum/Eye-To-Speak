@@ -10,6 +10,7 @@ from config import (
 from core.gestures import BlinkGesture
 from core.eye_tracker import EyeTracker
 from core.calibration import EyeCalibration
+from core.pattern_buffer import PatternBuffer
 
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -22,6 +23,8 @@ def main():
     tracker = EyeTracker()
 
     calibration = EyeCalibration()
+
+    buffer = PatternBuffer()
 
     current_threshold = EAR_THRESHOLD
 
@@ -110,12 +113,16 @@ def main():
 
                     if gesture == "BLINK":
 
+                        buffer.add("B")
+
                         print(
                             f"BLINK | "
                             f"Total: {blink.count}"
                         )
 
                     elif gesture == "LONG_BLINK":
+
+                        buffer.add("L")
 
                         print(
                             f"LONG BLINK | "
@@ -127,6 +134,15 @@ def main():
                         if is_blink
                         else "OPEN"
                     )
+
+            pattern = buffer.get_pattern()
+
+            if pattern:
+
+                print(
+                    f"Pattern: "
+                    f"{''.join(pattern)}"
+                )
 
             cv2.putText(
                 frame,
