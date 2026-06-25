@@ -1,54 +1,18 @@
 import cv2
 import mediapipe as mp
 
-from core.gestures import BlinkGesture
 from config import EAR_THRESHOLD
+from core.gestures import BlinkGesture
+from core.eye_tracker import EyeTracker
 
 
 mp_face_mesh = mp.solutions.face_mesh
 
 
-LEFT_EYE = [362, 385, 387, 263, 373, 380]
-RIGHT_EYE = [33, 160, 158, 133, 153, 144]
-
-
-def eye_aspect_ratio(
-    landmarks,
-    eye_indices,
-    img_w,
-    img_h
-):
-    import numpy as np
-
-    points = [
-        (
-            int(landmarks[i].x * img_w),
-            int(landmarks[i].y * img_h)
-        )
-        for i in eye_indices
-    ]
-
-    A = np.linalg.norm(
-        np.array(points[1]) -
-        np.array(points[5])
-    )
-
-    B = np.linalg.norm(
-        np.array(points[2]) -
-        np.array(points[4])
-    )
-
-    C = np.linalg.norm(
-        np.array(points[0]) -
-        np.array(points[3])
-    )
-
-    return (A + B) / (2.0 * C)
-
-
 def main():
 
     blink = BlinkGesture()
+    tracker = EyeTracker()
 
     cap = cv2.VideoCapture(0)
 
@@ -88,23 +52,11 @@ def main():
                     .landmark
                 )
 
-                left_ear = eye_aspect_ratio(
+                avg_ear = tracker.get_avg_ear(
                     landmarks,
-                    LEFT_EYE,
                     w,
                     h
                 )
-
-                right_ear = eye_aspect_ratio(
-                    landmarks,
-                    RIGHT_EYE,
-                    w,
-                    h
-                )
-
-                avg_ear = (
-                    left_ear + right_ear
-                ) / 2
 
                 is_blink = (
                     avg_ear < EAR_THRESHOLD
