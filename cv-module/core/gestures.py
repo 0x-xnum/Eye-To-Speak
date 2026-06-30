@@ -15,6 +15,14 @@ class BlinkGesture:
         self.last_blink = 0
         self.blink_start = None
 
+    def reset(self):
+        """Call this when face tracking is lost mid-blink,
+        so a stale blink_start time doesn't pollute the
+        next real blink's duration."""
+
+        self.detected = False
+        self.blink_start = None
+
     def update(
         self,
         is_blink

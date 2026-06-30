@@ -135,6 +135,9 @@ def main():
                         else "OPEN"
                     )
 
+            else:
+                blink.reset()
+
             pattern = buffer.get_pattern()
 
             if pattern:
