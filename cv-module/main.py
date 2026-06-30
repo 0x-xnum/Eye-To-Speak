@@ -136,6 +136,7 @@ def main():
                     )
 
             else:
+                # No face detected → reset blink state
                 blink.reset()
 
             pattern = buffer.get_pattern()
