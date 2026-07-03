@@ -4,7 +4,8 @@ import mediapipe as mp
 from config import (
     EAR_THRESHOLD,
     CALIBRATION_FRAMES,
-    CALIBRATION_FACTOR
+    CALIBRATION_FACTOR,
+    validate_config
 )
 
 from core.gestures import BlinkGesture
@@ -18,6 +19,15 @@ mp_face_mesh = mp.solutions.face_mesh
 
 def main():
 
+    try:
+        validate_config()
+
+    except ValueError as e:
+
+        print(f"[!] Invalid config: {e}")
+
+        return
+
     blink = BlinkGesture()
 
     tracker = EyeTracker()
@@ -29,6 +39,15 @@ def main():
     current_threshold = EAR_THRESHOLD
 
     cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+
+        print(
+            "[!] Could not open the camera. Check that it's "
+            "connected and not in use by another application."
+        )
+
+        return
 
     with mp_face_mesh.FaceMesh(
         max_num_faces=1,
@@ -56,7 +75,7 @@ def main():
             results = face_mesh.process(rgb)
 
             avg_ear = 0
-            status = "NO FACE"
+            status = "NO FACE - move into frame"
 
             if results.multi_face_landmarks:
 
@@ -136,7 +155,10 @@ def main():
                     )
 
             else:
-                # No face detected → reset blink state
+
+                # Face tracking lost mid-blink: clear any in-progress
+                # blink state so the tracking gap doesn't get counted
+                # toward blink duration once the face reappears.
                 blink.reset()
 
             pattern = buffer.get_pattern()
@@ -192,17 +214,38 @@ def main():
                 2
             )
 
+            cv2.putText(
+                frame,
+                "Press 'r' to recalibrate",
+                (30, 210),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (200, 200, 200),
+                1
+            )
+
             cv2.imshow(
                 "Eye-To-Speak",
                 frame
             )
 
-            if (
-                cv2.waitKey(1)
-                & 0xFF
-                == ord("q")
-            ):
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord("q"):
                 break
+
+            if key == ord("r"):
+
+                calibration.reset()
+
+                blink.reset()
+
+                current_threshold = EAR_THRESHOLD
+
+                print(
+                    "\n[+] Recalibration requested — "
+                    "hold still with eyes open.\n"
+                )
 
     cap.release()
     cv2.destroyAllWindows()

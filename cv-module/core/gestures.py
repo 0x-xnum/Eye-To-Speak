@@ -15,12 +15,6 @@ class BlinkGesture:
         self.last_blink = 0
         self.blink_start = None
 
-    def reset(self):
-        """Reset blink detection state when face tracking is lost.
-        Prevents stale blink_start time from causing false long blinks."""
-        self.detected = False
-        self.blink_start = None
-
     def update(
         self,
         is_blink
@@ -63,3 +57,15 @@ class BlinkGesture:
             return "BLINK"
 
         return None
+
+    def reset(self):
+        """
+        Clears any in-progress blink state without touching the
+        running count. Call this when face tracking is lost
+        mid-blink so a gap in tracking (not an actual long eye
+        closure) doesn't get misread as a LONG_BLINK once the face
+        reappears.
+        """
+
+        self.detected = False
+        self.blink_start = None

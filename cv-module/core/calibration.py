@@ -37,3 +37,14 @@ class EyeCalibration:
     def is_calibrated(self):
 
         return self.calibrated
+
+    def reset(self):
+        """
+        Clears calibration so the next frames are re-sampled from
+        scratch. Call this when lighting or camera position changes
+        enough that the old threshold no longer fits.
+        """
+
+        self.samples = []
+        self.calibrated = False
+        self.threshold = None
