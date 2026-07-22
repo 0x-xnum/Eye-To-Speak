@@ -49,6 +49,7 @@ class BlinkGesture:
             
             if self.emergency_triggered:
                 self.emergency_triggered = False
+                self.last_blink = now
                 return None
 
             if (

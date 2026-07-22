@@ -38,7 +38,7 @@ class EyeTracker:
             np.array(points[3])
         )
 
-        return (A + B) / (2.0 * C)
+        return (A + B) / (2.0 * max(C, 1e-6))
 
     def get_avg_ear(
         self,

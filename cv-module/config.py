@@ -59,3 +59,9 @@ def validate_config():
             "BLINK_COOLDOWN, otherwise long blinks become "
             "indistinguishable from the debounce window"
         )
+        
+    if EMERGENCY_CLOSURE_THRESHOLD <= LONG_BLINK_THRESHOLD:
+        raise ValueError(
+            "EMERGENCY_CLOSURE_THRESHOLD must be greater than "
+            "LONG_BLINK_THRESHOLD"
+        )
