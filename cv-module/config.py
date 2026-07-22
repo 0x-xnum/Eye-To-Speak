@@ -7,6 +7,24 @@ CALIBRATION_FACTOR = 0.75
 
 LONG_BLINK_THRESHOLD = 0.5
 
+EMERGENCY_CLOSURE_THRESHOLD = 3.0
+
+PATTERN_DICTIONARY = {
+    # Conversational
+    "S": "Yes",
+    "SS": "No",
+    "SSS": "I don't know, or Maybe",
+    "SL": "Thank you",
+    "SLS": "Please repeat that",
+    
+    # Needs
+    "L": "I need help",
+    "LS": "I am thirsty or hungry",
+    "LL": "I am uncomfortable, please move me",
+    
+    # System
+    "LSS": "Open Keyboard Mode"
+}
 
 def validate_config():
     """

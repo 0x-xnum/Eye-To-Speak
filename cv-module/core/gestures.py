@@ -2,7 +2,8 @@ import time
 
 from config import (
     BLINK_COOLDOWN,
-    LONG_BLINK_THRESHOLD
+    LONG_BLINK_THRESHOLD,
+    EMERGENCY_CLOSURE_THRESHOLD
 )
 
 
@@ -14,6 +15,7 @@ class BlinkGesture:
         self.detected = False
         self.last_blink = 0
         self.blink_start = None
+        self.emergency_triggered = False
 
     def update(
         self,
@@ -28,6 +30,12 @@ class BlinkGesture:
 
                 self.detected = True
                 self.blink_start = now
+                self.emergency_triggered = False
+
+            else:
+                if not self.emergency_triggered and now - self.blink_start >= EMERGENCY_CLOSURE_THRESHOLD:
+                    self.emergency_triggered = True
+                    return "EMERGENCY"
 
             return None
 
@@ -38,6 +46,10 @@ class BlinkGesture:
             )
 
             self.detected = False
+            
+            if self.emergency_triggered:
+                self.emergency_triggered = False
+                return None
 
             if (
                 now - self.last_blink

@@ -1,3 +1,4 @@
+import os
 import cv2
 import mediapipe as mp
 
@@ -5,6 +6,7 @@ from config import (
     EAR_THRESHOLD,
     CALIBRATION_FRAMES,
     CALIBRATION_FACTOR,
+    PATTERN_DICTIONARY,
     validate_config
 )
 
@@ -132,7 +134,7 @@ def main():
 
                     if gesture == "BLINK":
 
-                        buffer.add("B")
+                        buffer.add("S")
 
                         print(
                             f"BLINK | "
@@ -147,6 +149,11 @@ def main():
                             f"LONG BLINK | "
                             f"Total: {blink.count}"
                         )
+                        
+                    elif gesture == "EMERGENCY":
+                        
+                        print("\n[!!!] MEDICAL EMERGENCY DETECTED [!!!]\n")
+                        os.system("say 'EMERGENCY. I am having a medical emergency' &")
 
                     status = (
                         "BLINK"
@@ -164,11 +171,16 @@ def main():
             pattern = buffer.get_pattern()
 
             if pattern:
-
-                print(
-                    f"Pattern: "
-                    f"{''.join(pattern)}"
-                )
+                pattern_str = "".join(pattern)
+                print(f"Pattern: {pattern_str}")
+                
+                phrase = PATTERN_DICTIONARY.get(pattern_str)
+                if phrase:
+                    print(f"[*] Phrase matched: {phrase}")
+                    safe_phrase = phrase.replace("'", "'\"'\"'")
+                    os.system(f"say '{safe_phrase}' &")
+                else:
+                    print(f"[!] Unrecognized pattern: {pattern_str}")
 
             cv2.putText(
                 frame,
