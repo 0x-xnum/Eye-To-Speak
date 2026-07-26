@@ -236,6 +236,17 @@ def main():
                 1
             )
 
+            current_buffer_str = ", ".join(buffer.pattern)
+            cv2.putText(
+                frame,
+                f"Buffer: [ {current_buffer_str} ]",
+                (30, 260),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (0, 255, 255),
+                2
+            )
+
             cv2.imshow(
                 "Eye-To-Speak",
                 frame
