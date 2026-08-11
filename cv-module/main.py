@@ -6,14 +6,14 @@ from config import (
     EAR_THRESHOLD,
     CALIBRATION_FRAMES,
     CALIBRATION_FACTOR,
-    PATTERN_DICTIONARY,
     validate_config
 )
 
 from core.gestures import BlinkGesture
 from core.eye_tracker import EyeTracker
-from core.calibration import EyeCalibration
+from core.calibration import DynamicCalibrator
 from core.pattern_buffer import PatternBuffer
+from core.nlp_engine import ContextPredictor
 
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -34,9 +34,11 @@ def main():
 
     tracker = EyeTracker()
 
-    calibration = EyeCalibration()
+    calibration = DynamicCalibrator(alpha=0.01)
 
     buffer = PatternBuffer()
+
+    nlp = ContextPredictor()
 
     current_threshold = EAR_THRESHOLD
 
@@ -149,11 +151,6 @@ def main():
                             f"LONG BLINK | "
                             f"Total: {blink.count}"
                         )
-                        
-                    elif gesture == "EMERGENCY":
-                        
-                        print("\n[!!!] MEDICAL EMERGENCY DETECTED [!!!]\n")
-                        os.system("say 'EMERGENCY. I am having a medical emergency' &")
 
                     status = (
                         "BLINK"
@@ -174,9 +171,9 @@ def main():
                 pattern_str = "".join(pattern)
                 print(f"Pattern: {pattern_str}")
                 
-                phrase = PATTERN_DICTIONARY.get(pattern_str)
-                if phrase:
-                    print(f"[*] Phrase matched: {phrase}")
+                phrase = nlp.predict_phrase(pattern_str)
+                if phrase and phrase != "Unknown Pattern" and phrase != "Unknown Context":
+                    print(f"[*] NLP Prediction: {phrase}")
                     safe_phrase = phrase.replace("'", "'\"'\"'")
                     os.system(f"say '{safe_phrase}' &")
                 else:
