@@ -25,23 +25,43 @@ class ContextPredictor:
         else:
             return "night"
 
-    def predict_phrase(self, pattern):
+    def predict_phrase(self, pattern, audio_context=""):
         """
-        Takes a blink pattern and predicts the user's intended phrase
-        based on the pattern's semantic intent and the current context (time of day).
+        Predicts the user's intended phrase using the semantic intent,
+        the time of day, and the ambient audio context (what the caregiver just said).
         """
         intent = self.intents.get(pattern)
         if not intent:
             return "Unknown Pattern"
             
         time_of_day = self.get_time_of_day()
+        audio_context = audio_context.lower()
         
-        # Save to history for potential future context matching
-        self.history.append({"intent": intent, "time": time_of_day})
+        self.history.append({"intent": intent, "time": time_of_day, "audio": audio_context})
         if len(self.history) > 10:
             self.history.pop(0)
+            
+        # --- 1. Multimodal Audio Context Overrides ---
+        if audio_context:
+            if "pain" in audio_context or "hurt" in audio_context or "scale" in audio_context:
+                if intent == "social_comfort": # User blinked "Yes"
+                    return "Yes, I am in a lot of pain right now."
+                elif intent == "negative_response": # User blinked "No"
+                    return "No, my pain is manageable."
+                    
+            if "cold" in audio_context or "blanket" in audio_context:
+                if intent == "social_comfort":
+                    return "Yes, please get me a blanket."
+                elif intent == "negative_response":
+                    return "No, my temperature is fine."
+                    
+            if "drink" in audio_context or "water" in audio_context:
+                if intent == "social_comfort":
+                    return "Yes, I would love some water."
+                elif intent == "negative_response":
+                    return "No, I am not thirsty."
         
-        # Predictive Logic based on Intent + Time of Day
+        # --- 2. Standard Temporal Predictive Logic ---
         if intent == "physical_need":
             return "I need a nurse"
             
