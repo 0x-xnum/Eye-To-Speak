@@ -14,6 +14,7 @@ from core.eye_tracker import EyeTracker
 from core.calibration import DynamicCalibrator
 from core.pattern_buffer import PatternBuffer
 from core.nlp_engine import ContextPredictor
+from core.audio_listener import AudioContextListener
 
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -39,6 +40,9 @@ def main():
     buffer = PatternBuffer()
 
     nlp = ContextPredictor()
+
+    audio_listener = AudioContextListener()
+    audio_listener.start()
 
     current_threshold = EAR_THRESHOLD
 
@@ -171,7 +175,7 @@ def main():
                 pattern_str = "".join(pattern)
                 print(f"Pattern: {pattern_str}")
                 
-                phrase = nlp.predict_phrase(pattern_str)
+                phrase = nlp.predict_phrase(pattern_str, audio_context=audio_listener.get_context())
                 if phrase and phrase != "Unknown Pattern" and phrase != "Unknown Context":
                     print(f"[*] NLP Prediction: {phrase}")
                     safe_phrase = phrase.replace("'", "'\"'\"'")
@@ -243,6 +247,18 @@ def main():
                 (0, 255, 255),
                 2
             )
+            
+            heard_text = audio_listener.get_context()
+            if heard_text:
+                cv2.putText(
+                    frame,
+                    f"Heard: '{heard_text}'",
+                    (30, 290),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.6,
+                    (255, 100, 100),
+                    1
+                )
 
             cv2.imshow(
                 "Eye-To-Speak",
@@ -267,6 +283,7 @@ def main():
                     "hold still with eyes open.\n"
                 )
 
+    audio_listener.stop()
     cap.release()
     cv2.destroyAllWindows()
 
