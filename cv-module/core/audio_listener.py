@@ -4,6 +4,7 @@ import speech_recognition as sr
 class AudioContextListener:
     def __init__(self):
         self.recognizer = sr.Recognizer()
+        self.recognizer.pause_threshold = 0.5 # Reduce from default 0.8s to speed up processing
         self.last_heard_sentence = ""
         self.is_listening = False
         self.thread = None
@@ -23,6 +24,7 @@ class AudioContextListener:
                     audio = self.recognizer.listen(source, timeout=2, phrase_time_limit=5)
                     
                     # Transcribe using Google's free API
+                    print("\n[Audio Listener] Processing audio...")
                     text = self.recognizer.recognize_google(audio)
                     if text:
                         self.last_heard_sentence = text.lower()

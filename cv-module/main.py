@@ -176,6 +176,7 @@ def main():
                 print(f"Pattern: {pattern_str}")
                 
                 phrase = nlp.predict_phrase(pattern_str, audio_context=audio_listener.get_context())
+                audio_listener.clear_context() # Reset context immediately after use
                 if phrase and phrase != "Unknown Pattern" and phrase != "Unknown Context":
                     print(f"[*] NLP Prediction: {phrase}")
                     safe_phrase = phrase.replace("'", "'\"'\"'")

@@ -43,6 +43,20 @@ class ContextPredictor:
             
         # --- 1. Multimodal Audio Context Overrides ---
         if audio_context:
+            
+            # --- Binary "OR" Questions (e.g. "water or food") ---
+            if " or " in audio_context:
+                parts = audio_context.split(" or ")
+                if len(parts) >= 2:
+                    # Extract the word right before and right after " or "
+                    opt1 = parts[0].strip().split()[-1]
+                    opt2 = parts[1].strip().split()[0].replace('?', '').replace('.', '')
+                    
+                    if intent == "social_comfort": # User blinked "S" -> Option 1
+                        return f"I would prefer {opt1}."
+                    elif intent == "negative_response": # User blinked "SS" -> Option 2
+                        return f"I would prefer {opt2}."
+
             if "pain" in audio_context or "hurt" in audio_context or "scale" in audio_context:
                 if intent == "social_comfort": # User blinked "Yes"
                     return "Yes, I am in a lot of pain right now."
